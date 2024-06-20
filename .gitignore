@@ -1,0 +1,12 @@
+# Ignore file.txt
+.env
+node_modules
+.secret
+bot.json
+usdt.json
+UniswapV2Router02.json
+pair.json
+
+
+# Ignore folder dengan namanya
+
