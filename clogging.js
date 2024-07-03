@@ -29,7 +29,8 @@ const contract = new ethers.Contract(contractAddress, ABI, provider);
 
 const totalSupply = ethers.utils.parseUnits('1000000000', 9); // Total supply dari token
 
-let firstTransactionDone = false;
+// Buat array untuk melacak status eksekusi threshold
+let thresholdExecuted = Array(20).fill(false);
 
 // Fungsi asli manualSwap
 async function manualSwap(transactionId, amountToSwap, percentage) {
@@ -95,23 +96,41 @@ async function checkAndswapExactTokensForETH() {
             const jumlahTokenBigNumber = ethers.utils.parseUnits(jumlahToken, 9);
 
             // Definisikan threshold
-            const fivePercentOfTotalSupply = totalSupply.mul(5).div(100);
-            const twoPointFivePercentOfTotalSupply = totalSupply.mul(25).div(1000);
+            const thresholds = [
+                { percentage: 1, amount: totalSupply.mul(1).div(100) },
+                { percentage: 2, amount: totalSupply.mul(2).div(100) },
+                { percentage: 3, amount: totalSupply.mul(3).div(100) },
+                { percentage: 4, amount: totalSupply.mul(4).div(100) },
+                { percentage: 5, amount: totalSupply.mul(5).div(100) },
+                { percentage: 6, amount: totalSupply.mul(6).div(100) },
+                { percentage: 7, amount: totalSupply.mul(7).div(100) },
+                { percentage: 8, amount: totalSupply.mul(8).div(100) },
+                { percentage: 9, amount: totalSupply.mul(9).div(100) },
+                { percentage: 10, amount: totalSupply.mul(10).div(100) },
+                { percentage: 11, amount: totalSupply.mul(11).div(100) },
+                { percentage: 12, amount: totalSupply.mul(12).div(100) },
+                { percentage: 13, amount: totalSupply.mul(13).div(100) },
+                { percentage: 14, amount: totalSupply.mul(14).div(100) },
+                { percentage: 15, amount: totalSupply.mul(15).div(100) },
+                { percentage: 16, amount: totalSupply.mul(16).div(100) },
+                { percentage: 17, amount: totalSupply.mul(17).div(100) },
+                { percentage: 18, amount: totalSupply.mul(18).div(100) },
+                { percentage: 19, amount: totalSupply.mul(19).div(100) },
+                { percentage: 20, amount: totalSupply.mul(20).div(100) },
+            ];
 
-            if (!firstTransactionDone && jumlahTokenBigNumber.gte(fivePercentOfTotalSupply)) {
-                console.log(`Jumlah token mencapai 5% dari total supply. Melakukan swap untuk transaksi id ${id}...`);
-                await swapExactTokensForETH(id, fivePercentOfTotalSupply, 5); // Menggunakan alias swapExactTokensForETH
-                firstTransactionDone = true;
-                console.log(`Menunggu 60 detik sebelum memproses transaksi berikutnya...`);
-                await new Promise(resolve => setTimeout(resolve, 60000)); // Jeda 60 detik
-            } else if (jumlahTokenBigNumber.gte(twoPointFivePercentOfTotalSupply)) {
-                console.log(`Jumlah token mencapai 2.5% dari total supply. Melakukan swap untuk transaksi id ${id}...`);
-                await swapExactTokensForETH(id, twoPointFivePercentOfTotalSupply, 2.5); // Menggunakan alias swapExactTokensForETH
-                console.log(`Menunggu 60 detik sebelum memproses transaksi berikutnya...`);
-                await new Promise(resolve => setTimeout(resolve, 60000)); // Jeda 60 detik
-            } else {
-                console.log(`Jumlah token belum mencapai threshold untuk transaksi id ${id}, tidak ada swap yang dilakukan.`);
+            for (let i = 0; i < thresholds.length; i++) {
+                if (!thresholdExecuted[i] && jumlahTokenBigNumber.gte(thresholds[i].amount)) {
+                    console.log(`Jumlah token mencapai ${thresholds[i].percentage}% dari total supply. Melakukan swap untuk transaksi id ${id}...`);
+                    await swapExactTokensForETH(id, thresholds[i].amount, thresholds[i].percentage); // Menggunakan alias swapExactTokensForETH
+                    thresholdExecuted[i] = true; // Tandai threshold ini sebagai sudah dieksekusi
+                    console.log(`Menunggu 60 detik sebelum memproses transaksi berikutnya...`);
+                    await new Promise(resolve => setTimeout(resolve, 60000)); // Jeda 60 detik
+                    break; // Keluar dari loop setelah melakukan swap
+                }
             }
+
+            console.log(`Jumlah token belum mencapai threshold untuk transaksi id ${id}, tidak ada swap yang dilakukan.`);
         }
     } catch (error) {
         console.error('Error dalam memeriksa dan melakukan manual swap:', error);
